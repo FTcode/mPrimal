@@ -1,8 +1,8 @@
 # mPrimal
 
-Artefact for Sections 4, 5 and 6 of the paper _"Refined Modelling of the Primal Attack, and Variants against Module-LWE"_, Paola de Perthuis and Filip Trenkić.
+Artefact for Sections 4, 5 and 6 of the paper _"Refined Modelling of the Primal Attack, and Variants against Module-LWE"_, Paola de Perthuis and Filip Trenkić ([eprint](https://eprint.iacr.org/2025/2195)).
 
-(Builds on the codebase of [mBKZ](https://github.com/lducas/mBKZ))
+This builds heavily on the codebase for [mBKZ](https://github.com/lducas/mBKZ).
 
 ## Contents
 
