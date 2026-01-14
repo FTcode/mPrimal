@@ -4,7 +4,7 @@ import numpy as np
 from math import log, exp, sqrt
 from predictions import lghK, avg_lskewness, lghZ
 from cyclotomics import Cyclotomic
-from scipy.special import betainc
+from scipy.special import betainc, digamma
 from primal_MLWE import DD12_squarednorm_pmf
 
 def mBKZsim_CN11(K, profile, tours, blocksize_K):
@@ -41,7 +41,7 @@ def mBKZsim_CN11(K, profile, tours, blocksize_K):
             f = min(k + blocksize_K - 1, rank - 1)
             local_ln_V = sum(profile[:f+1]) - sum(new_profile[:k])
 
-            pred = gh[local_dim] + local_ln_V/local_dim 
+            pred = gh[local_dim] + local_ln_V/local_dim
 
             if phi:
                 if pred < profile[k]:
@@ -49,17 +49,17 @@ def mBKZsim_CN11(K, profile, tours, blocksize_K):
                     phi = False
             else:
                 new_profile[k] = pred
-        
+
         if phi:
             break
-    
+
         # Account for terminal block
         local_ln_V = sum(profile) - sum(new_profile[:-terminal])
         new_profile[-terminal:] = (exp_mHKZ_profile[-terminal:]-sum(exp_mHKZ_profile[-terminal:]/terminal)) + (local_ln_V/terminal)
 
         assert allclose(sum(new_profile), sum(profile))
         profile = copy(new_profile)
-    
+
     return profile
 
 def MLWE_initial_Z_shape(K, q, r, m, sigma, embedding="structured"):
@@ -110,7 +110,7 @@ def MLWE_initial_Z_shape(K, q, r, m, sigma, embedding="structured"):
 
         assert allclose(sum(concatenate([head,slope,tail])), ln_L_vol)
         return concatenate([head, slope, tail])
-    
+
     elif isinstance(embedding, int):
         deltaLLL = 1.0219
         assert 1 <= embedding <= d
@@ -181,7 +181,7 @@ def mPrimal_success(K, r, m, q, sigma, blocksize_K, tours):
         for vnorm2, p_tot in success_per_vnorm2.items():
             p_new = projected_norm_cdf(d*(r+m+1), sqrt(vnorm2), d*blocksize_K, exp(ln_gh))
             success_per_vnorm2[vnorm2] += (1 - p_tot) * p_new
-    
+
     sum_result = 0
     for vnorm2, prob in vnorm2_pmf.items():
         sum_result += prob * success_per_vnorm2[vnorm2]
@@ -214,13 +214,13 @@ def mPrimal_success_progressive(K, r, m, q, sigma, tours, max_blocksize_K = None
     while blocksize_K < (40//d):
         profile = mBKZsim_CN11(K, profile, tours = tours, blocksize_K = blocksize_K)
         blocksize_K += 1
-    
+
     loop = True
     while loop and blocksize_K <= max_blocksize_K:
         for tour in range(tours):
             # Run 1 tour of mBKZ simulator
             profile = mBKZsim_CN11(K, profile, tours = 1, blocksize_K = blocksize_K)
-            
+
             # Get Gaussian heuristic for terminal block
             ln_local_vol = sum(profile[-blocksize_K:])
             ln_gh = lghK(K, blocksize_K) + (ln_local_vol/(blocksize_K * d))
@@ -231,11 +231,11 @@ def mPrimal_success_progressive(K, r, m, q, sigma, tours, max_blocksize_K = None
                 if p_tot >= thresh:
                     num_above_thresh += 1
                     continue
-                
+
                 p_new = projected_norm_cdf(d*(r+m+1), sqrt(vnorm2), d*blocksize_K, exp(ln_gh))
                 p_tot += (1 - p_tot) * p_new
                 p_tot_table[vnorm2] = p_tot
-            
+
         # If all above threshold we are done
         if num_above_thresh == len(vnorm2_pmf.items()):
             loop = False
@@ -257,7 +257,7 @@ def mPrimal_success_progressive(K, r, m, q, sigma, tours, max_blocksize_K = None
                     avg += cmf[blocksize_K] * vnorm2_pmf[vnorm2]
             avg_cmf[blocksize_K] = avg
 
-    return avg_cmf  
+    return avg_cmf
 
 def unsPrimal_success_progressive(K, r, m, q, sigma, tours, l = 1, max_blocksize_Q = None, thresh = 0.999):
     """
@@ -266,10 +266,10 @@ def unsPrimal_success_progressive(K, r, m, q, sigma, tours, l = 1, max_blocksize
     d = K.deg
     c = K.cond
     rank_Q = d*(r+m)+l
-    
+
     if max_blocksize_Q is None:
         max_blocksize_Q = rank_Q
-    
+
     vnorm2_pmf = DD12_squarednorm_pmf(d*(r+m), sigma, shift = l*sigma**2, tol = 0.01, rej_sample = False)
     print(vnorm2_pmf)
     # Table where keys are ||v||^2 and entries are p_tot
@@ -284,7 +284,7 @@ def unsPrimal_success_progressive(K, r, m, q, sigma, tours, l = 1, max_blocksize
     while blocksize_Q < 40:
         Q_profile = mBKZsim_CN11(Q, Q_profile, tours = tours, blocksize_K = blocksize_Q)
         blocksize_Q += 1
-    
+
     loop = True
     while loop and blocksize_Q <= max_blocksize_Q:
         for tour in range(tours):
@@ -298,7 +298,7 @@ def unsPrimal_success_progressive(K, r, m, q, sigma, tours, l = 1, max_blocksize
                 if p_tot >= thresh:
                     num_above_thresh += 1
                     continue
-                
+
                 p_new = p_new = projected_norm_cdf(rank_Q, sqrt(vnorm2), blocksize_Q, quantile)
                 p_tot += (1 - p_tot) * p_new
                 p_tot_table[vnorm2] = p_tot
@@ -347,7 +347,7 @@ def lembedding_success(K : Cyclotomic, r, m, q, sigma, blocksize_Q, tours, l = 1
     for tour in range(tours):
         # Run 1 tour of BKZ simulator
         Q_profile = mBKZsim_CN11(Q, Q_profile, tours = 1, blocksize_K = blocksize_Q)
-        
+
         # Update probabilities
         quantile = exp(Q_profile[-blocksize_Q])
 
@@ -357,11 +357,11 @@ def lembedding_success(K : Cyclotomic, r, m, q, sigma, blocksize_Q, tours, l = 1
                 p_new = projected_norm_cdf(rank_Q, sqrt(full_norm2), blocksize_Q, quantile)
                 success_per_vnorm2[vnorm2] += (1 - success_per_vnorm2[vnorm2]) * p_new
 
-    
+
     sum_result = 0
     for vnorm2, prob in vnorm2_pmf.items():
         sum_result += prob * success_per_vnorm2[vnorm2]
-    
+
     return sum_result
 
 def unsPrimal_success(K : Cyclotomic, r, m, q, sigma, blocksize_Q, tours, l = 1):
@@ -383,18 +383,18 @@ def unsPrimal_success(K : Cyclotomic, r, m, q, sigma, blocksize_Q, tours, l = 1)
     for tour in range(tours):
         # Run 1 tour of BKZ simulator
         Q_profile = mBKZsim_CN11(Q, Q_profile, tours = 1, blocksize_K = blocksize_Q)
-        
+
         # Update probabilities
         quantile = exp(Q_profile[-blocksize_Q])
 
         for vnorm2, p_tot in success_per_vnorm2.items():
             p_new = projected_norm_cdf(rank_Q, sqrt(vnorm2), blocksize_Q, quantile)
             success_per_vnorm2[vnorm2] += (1 - p_tot) * p_new
-    
+
     sum_result = 0
     for vnorm2, prob in vnorm2_pmf.items():
         sum_result += prob * success_per_vnorm2[vnorm2]
-    
+
     return sum_result
 
 def mHeurQSlope(K, r):
@@ -409,7 +409,8 @@ def MLWE_mGSA_pred(K,r,m,q,sigma):
     rho = r + m + 1
     ln_det = (rho/2)*log(abs(K.disc)) + m*d*log(q) + d*log(sigma)
     for betaK in range(40//d, r+m+1):
-        lhs = log(sigma * sqrt(d * betaK))
+        #lhs = log(sigma * sqrt(d * betaK))
+        lhs = log(sigma) + (1/2)*(digamma(d*betaK/2) + log(2))
         rhs = lghK(K, betaK) + ln_det/(d*rho) + ((rho - betaK)/(2*d))*(d**2)*mHeurQSlope(K,betaK)
         if lhs < rhs:
             return betaK
@@ -424,12 +425,14 @@ def MLWE_GSA_pred(K,r,m,q,sigma):
     ln_vol = (r+m)*log(abs(K.disc))/2 + m*d*log(q) + log(sigma)
     for beta in range(40, d*(r+m+1)):
         ln_alpha = 2*lghZ(beta)/(beta - 1)
-        lhs = log(sigma * sqrt(beta))
+        #lhs = log(sigma * sqrt(beta))
+        lhs = log(sigma) + (1/2)*(digamma(beta/2) + log(2))
         rhs = ((2*beta - rank - 1)/2)*ln_alpha + ln_vol/rank
         index = rank - beta + 1
         rhs = ((rank+1-2*index)) * lghZ(beta)/(beta - 1) + ln_vol/rank
         if lhs < rhs:
             return beta
+
 
 def projected_norm_cdf(full_dimension, full_norm, proj_dimension, proj_norm):
     """
@@ -442,14 +445,14 @@ def projected_norm_cdf(full_dimension, full_norm, proj_dimension, proj_norm):
     m = proj_dimension
     v = full_norm
     x = proj_norm
-    
+
     if x <= 0:
         return 0.0
     if x >= v:
         return 1.0
-    
+
     alpha = m / 2.0
     beta = (n - m) / 2.0
     z = (x / v) ** 2
-    
+
     return betainc(alpha, beta, z)
