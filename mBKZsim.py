@@ -199,7 +199,7 @@ def mPrimal_success_progressive(K, r, m, q, sigma, tours, max_blocksize_K = None
     if max_blocksize_K is None:
         max_blocksize_K = rank_K
 
-    vnorm2_pmf = DD12_squarednorm_pmf(d*(r+m), sigma, shift = d*sigma**2, tol = 0.01, rej_sample=False)
+    vnorm2_pmf = DD12_squarednorm_pmf(d*(r+m), sigma, shift = d*sigma**2, tol = 0.01)
     print(vnorm2_pmf)
 
     # Table where keys are ||v||^2 and entries are p_tot
@@ -270,7 +270,7 @@ def unsPrimal_success_progressive(K, r, m, q, sigma, tours, l = 1, max_blocksize
     if max_blocksize_Q is None:
         max_blocksize_Q = rank_Q
 
-    vnorm2_pmf = DD12_squarednorm_pmf(d*(r+m), sigma, shift = l*sigma**2, tol = 0.01, rej_sample = False)
+    vnorm2_pmf = DD12_squarednorm_pmf(d*(r+m), sigma, shift = l*sigma**2, tol = 0.01)
     print(vnorm2_pmf)
     # Table where keys are ||v||^2 and entries are p_tot
     p_tot_table = {vnorm2 : 0 for vnorm2 in vnorm2_pmf.keys()}
