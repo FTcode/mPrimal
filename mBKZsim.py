@@ -36,10 +36,12 @@ def mBKZsim_CN11(K, profile, tours, blocksize_K):
         phi = True
         terminal = min(K_heur_rank, blocksize_K)
 
+        prefix_old = float(sum(profile[:min(blocksize_K, rank)]))
+        prefix_new = 0.0
+
         for k in range(rank - terminal):
             local_dim = min(blocksize_K, rank - k)
-            f = min(k + blocksize_K - 1, rank - 1)
-            local_ln_V = sum(profile[:f+1]) - sum(new_profile[:k])
+            local_ln_V = prefix_old - prefix_new
 
             pred = gh[local_dim] + local_ln_V/local_dim
 
@@ -49,6 +51,10 @@ def mBKZsim_CN11(K, profile, tours, blocksize_K):
                     phi = False
             else:
                 new_profile[k] = pred
+
+            prefix_new += new_profile[k]
+            if k + blocksize_K < rank:
+                prefix_old += profile[k + blocksize_K]
 
         if phi:
             break
