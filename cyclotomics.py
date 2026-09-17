@@ -83,6 +83,12 @@ class Cyclotomic:
         # Save the coefficients of the defining polynomials
         self.phi_c = array(cyclotomic_poly(self.cond).as_poly().all_coeffs(), dtype="int")
 
+    def __eq__(self, other):
+        return isinstance(other, Cyclotomic) and self.cond == other.cond
+
+    def __hash__(self):
+        return hash(self.cond)
+
     def is_invertible_mod_cond(self, i):
         """
         A function testing whether an integer i is invertible modulo the conductor
