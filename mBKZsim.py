@@ -2,10 +2,13 @@
 from numpy import array, allclose, concatenate, copy
 import numpy as np
 from math import log, exp, sqrt
+from pathlib import Path
 from predictions import lghK, avg_lskewness, lghZ
 from cyclotomics import Cyclotomic
 from scipy.special import betainc, digamma
 from primal_MLWE import DD12_squarednorm_pmf
+
+DATA_DIR = Path(__file__).resolve().parent / 'data'
 
 def mBKZsim_CN11(K, profile, tours, blocksize_K):
     """
@@ -25,7 +28,7 @@ def mBKZsim_CN11(K, profile, tours, blocksize_K):
 
     # Memoize log-gaussian heuristic for dimension up to blocksize
     # Retrieve experimental data from csv file
-    with open('data/exp_mHKZ_profiles.csv', 'r') as f:
+    with open(DATA_DIR / 'exp_mHKZ_profiles.csv', 'r') as f:
         c_line = filter(lambda l:l.startswith(str(K.cond)), f.readlines()).__next__()
         exp_mHKZ_profile = np.fromstring(c_line[c_line.index(',')+1:], dtype = "float64", sep = ',')
     gh = [0] + [(exp_mHKZ_profile[-i] - sum(exp_mHKZ_profile[-i:])/i) for i in range(1, K_heur_rank)]

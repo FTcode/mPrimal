@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from math import log, lgamma, pi
+from functools import lru_cache
 from cyclotomics import Cyclotomic
 from scipy.special import digamma
 
@@ -36,6 +37,7 @@ def lghK(K, r):
     #return lghZ(K.deg*r) + log(K.cond)/(K.deg*r)
 
 
+@lru_cache(maxsize=None)
 def avg_lskewness(K, r, estimate="spherical model"):
     """
     Estimate the average log skewness term in the slope equation (Term t_3)
